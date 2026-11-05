@@ -92,7 +92,7 @@ export function Setup({ kind, profile, deckId, setDeckId, initial, onBack, onSta
       <button className="btn btn-ghost -ml-3 mb-4 text-sm" onClick={onBack}>
         ← Back
       </button>
-      <h1 className="text-2xl font-bold">{kind === 'solo' ? 'Solo practice' : 'Pass the device'}</h1>
+      <h1 className="font-display text-3xl font-semibold">{kind === 'solo' ? 'Solo practice' : 'Pass the device'}</h1>
       <p className="mt-1 text-sm text-mute">{kind === 'solo' ? 'You vs the fuse.' : 'Everyone plays on this screen. The glowing node shows whose turn it is.'}</p>
 
       <div className="mt-6 space-y-4">

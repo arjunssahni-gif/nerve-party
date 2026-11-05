@@ -64,7 +64,7 @@ export function QuestionCard({ question: q, holderName, showTurnBanner, feedback
         )}
       </div>
 
-      <h2 id="q-prompt" className="text-xl font-semibold leading-snug sm:text-2xl">
+      <h2 id="q-prompt" className="font-display text-2xl font-semibold leading-snug sm:text-[1.7rem]">
         {q.prompt}
       </h2>
 
@@ -137,7 +137,7 @@ function TextAnswer({ onSubmit, disabled, multi }: { onSubmit: (t: string) => vo
   const [text, setText] = useState('');
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (!disabled) ref.current?.focus();
+    if (!disabled) ref.current?.focus({ preventScroll: true });
   }, [disabled]);
   return (
     <form
@@ -147,7 +147,7 @@ function TextAnswer({ onSubmit, disabled, multi }: { onSubmit: (t: string) => vo
         if (!text.trim() || disabled) return;
         onSubmit(text);
         setText('');
-        ref.current?.focus();
+        ref.current?.focus({ preventScroll: true });
       }}
     >
       <input
@@ -173,7 +173,7 @@ function TextAnswer({ onSubmit, disabled, multi }: { onSubmit: (t: string) => vo
 function Choices({ options, tf, onPick, disabled }: { options: Option[]; tf: boolean; onPick: (id: string) => void; disabled: boolean }) {
   const first = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (!disabled) first.current?.focus();
+    if (!disabled) first.current?.focus({ preventScroll: true });
   }, [disabled, options]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

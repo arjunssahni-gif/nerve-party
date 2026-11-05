@@ -38,7 +38,7 @@ export function App() {
       <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
         <button className="flex items-center gap-2 rounded-lg" onClick={() => (screen.name === 'play' ? undefined : setScreen({ name: 'home' }))} aria-label="Nerve Party home">
           <Logo />
-          <span className="font-semibold tracking-tight">Nerve Party</span>
+          <span className="font-display text-lg font-semibold tracking-tight">Nerve Party</span>
         </button>
         <label className="flex cursor-pointer items-center gap-2 text-xs text-mute">
           <input type="checkbox" className="accent-[#5ce1ff]" checked={prefs.reducedMotion} onChange={(e) => setPrefs({ reducedMotion: e.target.checked })} />
@@ -47,7 +47,7 @@ export function App() {
       </header>
 
       <main>
-        {screen.name === 'home' && <Home profile={profile} setProfile={setProfile} deckId={deckId} setDeckId={setDeckId} onPlay={(kind) => setScreen({ name: 'setup', kind })} />}
+        {screen.name === 'home' && <Home profile={profile} setProfile={setProfile} deckId={deckId} setDeckId={setDeckId} onPlay={(kind) => setScreen({ name: 'setup', kind })} reduced={reduced} />}
         {screen.name === 'setup' && (
           <Setup
             kind={screen.kind}

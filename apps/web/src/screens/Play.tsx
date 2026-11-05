@@ -3,7 +3,7 @@ import { continuePriorities, viewGame, type EngineContext, type GameState } from
 import { Feed } from '../components/Feed';
 import { QuestionCard } from '../components/QuestionCard';
 import { Reveal } from '../components/Reveal';
-import { Ring } from '../components/Ring';
+import { Stage } from '../components/stage/Stage';
 import { useFrameNow, useLocalGame, type LocalGameConfig } from '../game/useLocalGame';
 import { loadProgress, recordGame, rememberNames } from '../lib/progress';
 import type { GameSetup } from './Setup';
@@ -58,12 +58,12 @@ export function Play({ setup, reduced, onFinish, onQuit }: Props) {
   }, [state.status, game]);
 
   const holder = view.players.find((p) => p.id === view.holderId);
-  const firedId = view.interlude?.kind === 'fired' ? view.interlude.firedPlayerId : state.status === 'over' ? state.feedback?.playerId : undefined;
-  const firedRecently = state.feedback && (state.feedback.kind === 'fired' || state.feedback.kind === 'wrong_choice') && now - state.feedback.at < 1800;
-  const firingPlayer = firedId ?? (firedRecently ? state.feedback?.playerId : undefined);
-  const firing = firingPlayer ? { playerId: firingPlayer, name: view.players.find((p) => p.id === firingPlayer)?.name ?? '' } : null;
-
+  const fb = state.feedback;
+  const fire = fb && (fb.kind === 'fired' || fb.kind === 'wrong_choice') ? { playerId: fb.playerId, at: fb.at } : null;
+  const firedName = fire ? view.players.find((p) => p.id === fire.playerId)?.name : undefined;
   const nextName = view.interlude?.kind === 'fired' ? view.players.find((p) => p.id === state.interlude?.nextHolderId)?.name : undefined;
+  // You sit at the front. In pass-the-device, the ring turns so whoever's turn it is is at the front.
+  const viewerId = view.solo ? (view.players[0]?.id ?? null) : view.holderId;
 
   const endEarly = () => {
     if (state.status === 'lobby') return onQuit();
@@ -76,7 +76,7 @@ export function Play({ setup, reduced, onFinish, onQuit }: Props) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-10 pt-4 sm:px-6">
+    <div className="mx-auto max-w-6xl px-3 pb-10 pt-2 sm:px-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="min-w-0 truncate text-sm text-mute">
           <span className="font-semibold text-ink">{setup.deck.name}</span>
@@ -88,39 +88,33 @@ export function Play({ setup, reduced, onFinish, onQuit }: Props) {
         </button>
       </div>
 
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:gap-6">
-        <div className="flex flex-col items-center">
-          <Ring players={view.players} holderId={view.holderId} potential={view.potential} mv={view.potentialMv} firing={firing} reduced={reduced} idle={state.status === 'lobby'} />
-          <p className="mt-1 h-6 text-center text-sm lg:-mt-2" aria-live="polite">
-            {state.status === 'playing' && holder && (
-              <>
-                {view.solo ? (
-                  <span className="font-semibold text-pulse">Your turn</span>
-                ) : (
-                  <>
-                    <span className="font-semibold text-pulse">{holder.name}</span> <span className="text-mute">has the signal</span>
-                  </>
-                )}
-              </>
-            )}
-            {view.interlude?.kind === 'fired' && (
-              <>
-                <span className="font-semibold text-fire">{firing?.name} fired</span>
-                <span className="text-mute"> · −1 life{nextName ? ` · next: ${nextName}` : ''}</span>
-              </>
-            )}
-          </p>
+      <div className="relative overflow-hidden rounded-[2rem] border-2 border-line bg-[radial-gradient(ellipse_at_50%_38%,#13213d_0%,#0a1122_45%,#04060c_100%)] shadow-[0_20px_60px_-20px_#000]">
+        <Stage players={view.players} holderId={view.holderId} viewerId={viewerId} potential={view.potential} now={now} fire={fire} idle={state.status === 'lobby'} reduced={reduced} zapped={view.interlude?.kind === 'fired' || (state.status === 'over' && !!fire)} />
+        <div className="pointer-events-none absolute inset-x-0 top-2 text-center font-display text-sm sm:top-3 sm:text-lg" aria-live="polite">
+          {state.status === 'playing' && holder && (
+            <span className="rounded-full bg-bg/70 px-4 py-1.5 backdrop-blur">
+              {view.solo ? <span className="text-pulse">Your turn</span> : <><span className="text-pulse">{holder.name}</span> <span className="text-mute">has the signal</span></>}
+            </span>
+          )}
+          {view.interlude?.kind === 'fired' && (
+            <span className="rounded-full bg-bg/70 px-4 py-1.5 backdrop-blur">
+              <span className="text-fire">⚡ {firedName} fired!</span>
+              <span className="text-mute"> −1 life{nextName ? ` · next: ${nextName}` : ''}</span>
+            </span>
+          )}
         </div>
+      </div>
 
+      <div className="mx-auto mt-5 grid max-w-6xl items-start gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="space-y-4">
           {state.status === 'lobby' && (
             <section className="panel p-6 text-center">
-              <h2 className="text-xl font-semibold">Ready?</h2>
-              <p className="mx-auto mt-2 max-w-md text-sm text-mute">
-                The membrane climbs toward threshold while you hold the signal. Answer in time and it jumps to the next node. If it hits
-                −55 mV on your turn, you fire and lose a myelin segment.
+              <h2 className="font-display text-2xl font-semibold">Ready?</h2>
+              <p className="mx-auto mt-2 max-w-md text-mute">
+                Hold the signal, answer before the dial hits <b className="text-ink">−55 mV</b>. Get it right and the impulse jumps to the next
+                player. Too slow and you fire — and lose a myelin segment.
               </p>
-              <button className="btn btn-primary mt-5 px-8 py-3 text-lg" onClick={game.start} autoFocus>
+              <button className="btn btn-primary mt-5 px-10 py-3 text-xl" onClick={game.start} autoFocus>
                 Start
               </button>
               <p className="mt-2 text-xs text-dim">or press Enter</p>
@@ -142,18 +136,24 @@ export function Play({ setup, reduced, onFinish, onQuit }: Props) {
 
           {state.status === 'over' && (
             <section className="panel p-6 text-center">
-              <h2 className="text-xl font-semibold">Game over</h2>
+              <h2 className="font-display text-2xl font-semibold">Game over</h2>
               <p className="mt-1 text-sm text-mute">Loading your study summary…</p>
             </section>
           )}
-
-          {!view.solo && state.status !== 'lobby' && <Feed feed={view.feed} players={view.players} />}
-          {view.solo && state.status !== 'lobby' && (
-            <p className="text-center text-sm text-mute">
-              Correct so far: <span className="font-semibold text-ink">{view.players[0]?.correct ?? 0}</span>
-            </p>
-          )}
         </div>
+
+        {state.status !== 'lobby' && (
+          <div>
+            {!view.solo ? (
+              <Feed feed={view.feed} players={view.players} />
+            ) : (
+              <section className="panel p-4 text-center">
+                <div className="text-xs font-semibold uppercase tracking-[0.16em] text-mute">Correct</div>
+                <div className="font-display text-4xl font-semibold text-pulse">{view.players[0]?.correct ?? 0}</div>
+              </section>
+            )}
+          </div>
+        )}
       </div>
 
       {view.interlude?.kind === 'reveal' && view.interlude.reveal && (

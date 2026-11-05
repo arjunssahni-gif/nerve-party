@@ -36,7 +36,7 @@ export function Summary({ state, setup, onAgain, onSettings, onHome }: Props) {
     <div className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6">
       <section className="text-center">
         <div className="text-xs font-semibold uppercase tracking-[0.2em] text-mute">{state.solo ? 'Solo practice' : 'Winner'}</div>
-        <h1 className="glow-text mt-2 text-4xl font-bold text-pulse">{headline}</h1>
+        <h1 className="glow-text mt-2 font-display text-5xl font-semibold text-pulse">{headline}</h1>
         <p className="mt-2 text-sm text-mute">
           {state.endedReason === 'exhausted' ? 'You went through every question in play.' : state.endedReason === 'solo_out' ? 'Out of myelin. Here’s what to review.' : setup.deck.name}
         </p>

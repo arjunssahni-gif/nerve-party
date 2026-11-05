@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import type { Deck } from '@nerve/shared';
 import { ProgressRing } from '../components/ProgressRing';
+import { Mascot } from '../components/stage/Mascot';
+import { useFrameNow } from '../game/useLocalGame';
 import { allDecks, deleteImportedDeck, parseDeckJson, playableTopics, saveImportedDeck } from '../lib/decks';
 import { getDeckProgress } from '../lib/progress';
 import { downloadText } from '../lib/storage';
@@ -11,12 +13,14 @@ interface Props {
   deckId: string;
   setDeckId: (id: string) => void;
   onPlay: (kind: 'solo' | 'hotseat') => void;
+  reduced: boolean;
 }
 
-export function Home({ profile, setProfile, deckId, setDeckId, onPlay }: Props) {
+export function Home({ profile, setProfile, deckId, setDeckId, onPlay, reduced }: Props) {
   const [decks, setDecks] = useState<Deck[]>(() => allDecks());
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const now = useFrameNow(!reduced);
 
   const importFile = async (file: File) => {
     setError(null);
@@ -29,8 +33,11 @@ export function Home({ profile, setProfile, deckId, setDeckId, onPlay }: Props) 
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-16 pt-6 sm:px-6">
-      <section className="mb-10 mt-6 text-center sm:mt-10">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+      <section className="mb-10 mt-2 text-center sm:mt-4">
+        <svg viewBox="-130 -230 260 250" className="mx-auto h-36 w-36 sm:h-44 sm:w-44" aria-hidden>
+          <Mascot potential={0.1} zapped={false} now={now} reduced={reduced} />
+        </svg>
+        <h1 className="-mt-2 font-display text-5xl font-semibold tracking-tight sm:text-6xl">
           Nerve <span className="glow-text text-pulse">Party</span>
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-mute">
@@ -146,7 +153,7 @@ function ModeCard({ title, body, onClick, primary, soon }: { title: string; body
       disabled={soon}
     >
       <div className="flex items-center justify-between">
-        <span className="text-lg font-semibold">{title}</span>
+        <span className="font-display text-xl font-semibold">{title}</span>
         {soon ? <span className="chip">Soon</span> : <span className="text-pulse transition group-hover:translate-x-0.5">→</span>}
       </div>
       <p className="mt-1.5 text-sm text-mute">{body}</p>
