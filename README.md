@@ -11,8 +11,8 @@ See [DESIGN.md](DESIGN.md) for the full game design.
 | Phase | What | Status |
 |---|---|---|
 | 1 | Game engine + answer matcher + tests + sample anatomy deck | ✅ done |
-| 2 | Solo + hot-seat browser UI | next |
-| 3 | Upload notes → generated question bank → review screen | |
+| 2 | Solo + hot-seat browser UI | ✅ done |
+| 3 | Upload notes → generated question bank → review screen | next |
 | 4 | Online multiplayer, accounts, saved progress | |
 | 5 | Difficulty calibration, sound, accessibility, deploy guide | |
 
@@ -23,6 +23,23 @@ Requires **Node.js 20+** (22 recommended).
 ```bash
 npm install
 ```
+
+## Play it
+
+```bash
+npm run dev
+```
+
+Then open **http://localhost:5173** in your browser. Choose **Solo practice** or
+**Pass the device**, set players and options, and press **Start**.
+
+- Type an answer and press **Enter**. For multiple choice press **1–4**; for true/false press **T/F**.
+- Word-bank questions: click tiles to place them, drag (or use ↑/↓) to reorder, then **Check order**.
+- Progress (the rings) is saved per player name in this browser.
+- **Reduce motion** is in the top-right corner.
+
+To play from a phone on the same Wi-Fi, run `npm run dev -- --host` and open the
+"Network" address it prints.
 
 ## Run the tests
 
@@ -48,6 +65,9 @@ packages/engine   pure TypeScript game engine and answer matcher (no I/O, no tim
   src/matcher/      normalize → alias/exact → typo tolerance → confusable guard
   src/game/         state machine (reduce), view (what clients see), summary, progress
   test/             matcher.test.ts, engine.test.ts
+apps/web          Vite + React + Tailwind browser app (solo + pass-the-device)
+  src/screens/      Home (decks, progress rings), Setup, Play, Summary
+  src/components/   Ring (axon + impulse + voltage gauge), QuestionCard, Reveal, Feed
 scripts/          small command-line helpers
 ```
 

@@ -41,7 +41,6 @@ export interface EngineContext {
 }
 
 const MAX_FEED = 40;
-const CURVE = 1.6; // potential rises faster near threshold
 const MIN_PENALTY_LEFT_MS = 750;
 
 export function createContext(questions: readonly Question[], opts: EngineOptions = {}): EngineContext {
@@ -488,7 +487,7 @@ class Run {
     p.lives = Math.max(0, p.lives - 1);
     p.fires++;
     this.fx.push({ type: 'fired', playerId: p.id });
-    this.feedback(p.id, cause === 'wrong_choice' ? 'wrong_choice' : 'fired', cause === 'wrong_choice' ? 'Wrong — one try only. Action potential!' : 'Action potential! You fired.', now);
+    this.feedback(p.id, cause === 'wrong_choice' ? 'wrong_choice' : 'fired', cause === 'wrong_choice' ? `Wrong pick — ${p.name} fired` : `Action potential — ${p.name} fired`, now);
     this.feed(p.id, cause === 'wrong_choice' ? `chose "${given ?? ''}"` : 'fired', 'fired', now);
 
     const q = this.q(round.kind === 'list' ? round.questionId : round.active!.questionId);
@@ -759,7 +758,8 @@ class Run {
 export function potentialLevel(fuse: { segStart: number; segLevel: number; endsAt: number }, now: number): number {
   const span = fuse.endsAt - fuse.segStart;
   const x = span <= 0 ? 1 : Math.min(1, Math.max(0, (now - fuse.segStart) / span));
-  return fuse.segLevel + (1 - fuse.segLevel) * Math.pow(x, CURVE);
+  // Steady climb that accelerates near threshold.
+  return fuse.segLevel + (1 - fuse.segLevel) * (0.65 * x + 0.35 * x * x * x);
 }
 
 export function nextDeadline(s: GameState): number | null {
